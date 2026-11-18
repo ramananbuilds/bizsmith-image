@@ -24,12 +24,16 @@ RUN bench get-app --branch v16.53.1 https://github.com/frappe/hrms \
  && bench get-app --branch develop  https://github.com/frappe/telephony \
  && bench get-app --branch main     https://github.com/whoisshahab/Frappe-White-Label \
  && bench get-app --branch main     https://github.com/ramananbuilds/agency_core \
- && bench build
+ && bench build \
+ && cp -a sites/assets/. assets/ \
+ && rm -rf sites/assets
 
-# bench build MUST run without --app. With --app the generated
-# sites/assets/assets.json only lists the apps passed in, so frappe/erpnext
-# bundles (login.bundle.css, website.bundle.css, erpnext-web.bundle.css) fall
-# back to bare paths and 404 — every website page renders unstyled.
+# bench build MUST run without --app: with --app, assets.json lists only the
+# named apps, so frappe/erpnext bundles fall back to bare paths (404) and every
+# website page renders unstyled.
 #
-# Do NOT copy or delete sites/assets: nginx serves /assets from there
-# (try_files $uri), and assets.json plus the per-app symlinks live in it.
+# The copy into assets/ is required, not redundant: at runtime the `sites`
+# volume shadows this image directory and supplies sites/assets as a symlink to
+# /home/frappe/frappe-bench/assets, so assets/ is what nginx actually serves.
+# Use cp -a, not cp -r, to preserve the per-app symlinks instead of
+# dereferencing them into copies of each app's entire public/ tree.
