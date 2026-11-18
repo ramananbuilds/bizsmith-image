@@ -24,6 +24,12 @@ RUN bench get-app --branch v16.53.1 https://github.com/frappe/hrms \
  && bench get-app --branch develop  https://github.com/frappe/telephony \
  && bench get-app --branch main     https://github.com/whoisshahab/Frappe-White-Label \
  && bench get-app --branch main     https://github.com/ramananbuilds/agency_core \
- && bench build --app hrms --app crm --app helpdesk --app telephony --app white_label --app agency_core \
- && cp -r sites/assets/. assets/ \
- && rm -rf sites/assets
+ && bench build
+
+# bench build MUST run without --app. With --app the generated
+# sites/assets/assets.json only lists the apps passed in, so frappe/erpnext
+# bundles (login.bundle.css, website.bundle.css, erpnext-web.bundle.css) fall
+# back to bare paths and 404 — every website page renders unstyled.
+#
+# Do NOT copy or delete sites/assets: nginx serves /assets from there
+# (try_files $uri), and assets.json plus the per-app symlinks live in it.
