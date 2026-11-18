@@ -13,6 +13,11 @@ FROM frappe/erpnext:v16
 USER frappe
 WORKDIR /home/frappe/frappe-bench
 
+# helpdesk's desk frontend imports socketio_port from sites/common_site_config.json
+# at build time; the official image ships that file as {}. The runtime
+# configurator overwrites it, so this only has to satisfy the bundler.
+RUN printf '%s' '{"socketio_port": 9000}' > sites/common_site_config.json
+
 RUN bench get-app --branch v16.53.1 https://github.com/frappe/hrms \
  && bench get-app --branch v1.92.0  https://github.com/frappe/crm \
  && bench get-app --branch v16.1.0  https://github.com/frappe/helpdesk \
